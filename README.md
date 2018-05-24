@@ -17,6 +17,12 @@ LSP java mode supports the following JDT Features:
 * Maven pom.xml project support
 * Limited Gradle support
 
+| command                   | description           | keybinding |
+|---------------------------|-----------------------|------------|
+| xref-find-definition      | Organize java imports |            |
+| lsp-java-organize-imports | Organize java imports |            |
+|                           |                       |            |
+
 ## Installation
 ### Install LSP Java
 The recommended way to install LSP Java is via `package.el` - the built-in package

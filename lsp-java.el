@@ -218,7 +218,8 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
                   "config_mac")
                  ((string-equal system-type "gnu/linux") ; linux
                   "config_linux"))))
-    (message (format "using config for %s" config))
+    (let ((inhibit-message t))
+     (message (format "using config for %s" config)))
     (expand-file-name config lsp-java-server-install-dir)))
 
 (defun lsp-java-organize-imports ()

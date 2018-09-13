@@ -302,7 +302,7 @@ FULL specify whether full or incremental build will be performed."
 (defun lsp-java--ensure-dir (path)
   "Ensure that directory PATH exists."
   (unless (file-directory-p path)
-    (make-directory path)))
+    (make-directory path t)))
 
 (defun lsp-java--ls-command ()
   "LS startup command."
@@ -469,17 +469,22 @@ PARAMS progress report notification data."
   (lsp-client-on-notification client "language/progressReport" 'lsp-java--progress-report)
   (lsp-client-on-action client "java.apply.workspaceEdit" 'lsp-java--apply-workspace-edit)
   (lsp-client-register-uri-handler client "jdt" 'lsp-java--resolve-uri)
+  (lsp-client-register-uri-handler client "chelib" 'lsp-java--resolve-uri)
 
   (lsp-provide-marked-string-renderer client "java" #'lsp-java--render-string)
   (lsp-provide-default-marked-string-renderer client #'lsp-java--render-markup))
 
 (defun lsp-java--get-filename (url)
   "Get the name of the buffer calculating it based on URL."
-  (let ((regexp "jdt://contents/\\(.*?\\)/\\(.*\\)\.class\\?"))
-    (save-match-data
-      (string-match regexp url)
-      (format "%s.java"
-              (replace-regexp-in-string "/" "." (match-string 2 url) t t)))))
+  (or (save-match-data
+        (when (string-match "jdt://contents/\\(.*?\\)/\\(.*\\)\.class\\?" url)
+          (format "%s.java"
+                  (replace-regexp-in-string "/" "." (match-string 2 url) t t))))
+      (save-match-data
+        (when (string-match "chelib://\\(.*\\)" url)
+          (let ((matched (match-string 1 url)))
+            (replace-regexp-in-string (regexp-quote ".jar") "jar" matched t t))))
+      (error "Unable to match %s" url)))
 
 (defun lsp-java--get-metadata-location (file-location)
   "Given a FILE-LOCATION return the file containing the metadata for the file."
@@ -492,13 +497,12 @@ PARAMS progress report notification data."
   (let* ((buffer-name (lsp-java--get-filename uri))
          (file-location (concat lsp-java-workspace-cache-dir buffer-name)))
     (unless (file-readable-p file-location)
-      (lsp-java--ensure-dir lsp-java-workspace-cache-dir)
+      (lsp-java--ensure-dir (file-name-directory file-location))
       (let ((content (lsp-send-request (lsp-make-request
                                         "java/classFileContents"
                                         (list :uri uri)))))
         (with-temp-file file-location
           (insert content))
-                                        ; store uri
         (with-temp-file (lsp-java--get-metadata-location file-location)
           (insert uri))))
     file-location))

@@ -18,6 +18,7 @@ LSP java mode supports the following JDT Features:
 * Limited Gradle support
 * Visual debugger - [dap-mode](https://github.com/yyoncho/dap-mode/)
 * Test runner - [dap-mode](https://github.com/yyoncho/dap-mode/)
+* Project explorer - [treemacs](https://github.com/Alexander-Miller/treemacs)
 
 ## Installation
 ### Spacemacs

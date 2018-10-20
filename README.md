@@ -127,6 +127,9 @@ some of them are bound to Emacs commands:
 * `lsp-java-treemacs-register` activates [lsp-java](https://github.com/emacs-lsp/lsp-java)/[treemacs](https://github.com/Alexander-Miller/treemacs) integration.
 * `lsp-java-treemacs-unregister` deactivates [lsp-java](https://github.com/emacs-lsp/lsp-java)/[treemacs](https://github.com/Alexander-Miller/treemacs) integration.
 * `lsp-java-update-project-uris`
+#### Classpath browsing
+[lsp-java](https://github.com/emacs-lsp/lsp-java) the command `lsp-java-browse-classpath` which allows users to browse the structure of current projects classpath. From that view the users could go to the particular item.
+![Classpath](images/classpath.png)
 ## Supported settings
 * `lsp-java-server-install-dir` - Install directory for eclipsejdtls-server
 * `lsp-java-java-path` - Path of the java executable

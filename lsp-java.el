@@ -532,11 +532,16 @@ PARAMS progress report notification data."
   "Handler for folder's change."
   (lsp-java-update-project-uris lsp--cur-workspace))
 
+(defun lsp-java--workspace-notify (&rest _args)
+  "Workspace notify handler."
+  (lsp-java-update-project-uris lsp--cur-workspace))
+
 (defun lsp-java--client-initialized (client)
   "Callback for CLIENT initialized."
   (lsp-client-on-notification client "language/status" 'lsp-java--language-status-callback)
   (lsp-client-on-notification client "language/actionableNotification" 'lsp-java--actionable-notification-callback)
   (lsp-client-on-notification client "language/progressReport" 'lsp-java--progress-report)
+  (lsp-client-on-notification client "workspace/notify" 'lsp-java--workspace-notify)
   (lsp-client-on-action client "java.apply.workspaceEdit" 'lsp-java--apply-workspace-edit)
   (lsp-client-register-uri-handler client "jdt" 'lsp-java--resolve-uri)
   (lsp-client-register-uri-handler client "chelib" 'lsp-java--resolve-uri)

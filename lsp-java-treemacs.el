@@ -25,15 +25,19 @@
 
 ;;; Code:
 
-(require 'ht)
-(require 'lsp-mode)
-(require 'treemacs-extensions)
 (require 'dash)
+(require 'lsp-mode)
 (require 'dash-functional)
+(require 'treemacs-extensions)
 
 (defface lsp-java-treemacs-directory-face
   '((t :inherit  treemacs-directory-face))
   "Face used by treemacs for lsp-java directories and packages."
+  :group 'lsp-java-treemacs)
+
+(defface lsp-java-treemacs-extension-root-face
+  '((t :inherit treemacs-directory-face ))
+  "Face used for the extension root."
   :group 'lsp-java-treemacs)
 
 (defface lsp-java-treemacs-file-face
@@ -165,7 +169,7 @@ REL-PATH rel path to the icon."
                       lsp-java-treemacs--get-libraries)
   :root-label "External Libraries"
   :root-marker t
-  :root-face font-lock-type-face
+  :root-face 'lsp-java-treemacs-extension-root-face
   :root-key-form (lsp--path-to-uri (button-get parent :path))
   :render-action (-let ((project-uri (-> btn
                                          (button-get :parent)
@@ -193,9 +197,7 @@ ADDED and REMOVED are pointing which are the changed folders."
               treemacs-do-remove-project-from-workspace)))
 
 (defun lsp-java-treemacs--is-root (dir-or-project)
-
-  "Returns whether DIR-OR-PROJECT is root of a project."
-
+  "Return whether DIR-OR-PROJECT is root of a project."
   (let ((dir (if (stringp dir-or-project)
                  dir-or-project
                (treemacs-project->path dir-or-project))))
@@ -218,7 +220,9 @@ ADDED and REMOVED are pointing which are the changed folders."
 
 
   (maphash (lambda (root-path workspace)
-             (treemacs-do-add-project-to-workspace root-path (f-filename root-path)))
+             (unless (or (f-equal? root-path lsp-java-workspace-dir)
+                         (f-equal? root-path lsp-java-workspace-cache-dir))
+               (treemacs-do-add-project-to-workspace root-path (f-filename root-path))))
            lsp--workspaces)
   (add-hook 'lsp-workspace-folders-change 'lsp-java-treemacs--folders-change))
 

@@ -98,58 +98,58 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
 * **lsp-java-treemacs-unregister** deactivates
 ## Supported commands
 ### LSP Mode commands
-* **lsp-execute-code-action** - Execute code action.
-* **lsp-rename** - Rename symbol at point
-* **lsp-describe-thing-at-point** - Display help for the thing at point.
-* **lsp-goto-type-definition** - Go to type definition
-* **lsp-goto-implementation** - Go to implementation
-* **lsp-workspace-restart** - Restart project
-* **lsp-format-buffer** - Format current buffer
-* **lsp-symbol-highlight** - Highlight all relevant references to the symbol under point.
-* **lsp-workspace-folders-add** - Add workspace folder
-* **lsp-workspace-folders-remove** - Remove workspace folder
-* **lsp-workspace-folders-switch** - Switch workspace folder
+* `lsp-execute-code-action` - Execute code action.
+* `lsp-rename` - Rename symbol at point
+* `lsp-describe-thing-at-point` - Display help for the thing at point.
+* `lsp-goto-type-definition` - Go to type definition
+* `lsp-goto-implementation` - Go to implementation
+* `lsp-workspace-restart` - Restart project
+* `lsp-format-buffer` - Format current buffer
+* `lsp-symbol-highlight` - Highlight all relevant references to the symbol under point.
+* `lsp-workspace-folders-add` - Add workspace folder
+* `lsp-workspace-folders-remove` - Remove workspace folder
+* `lsp-workspace-folders-switch` - Switch workspace folder
 ### LSP Java commands
-* **lsp-java-organize-imports** - Organize imports
-* **lsp-java-build-project** - Perform partial or full build for the projects
-* **lsp-java-update-project-configuration** - Update project configuration
-* **lsp-java-actionable-notifications** - Resolve actionable notifications
-* **lsp-java-update-user-settings** - Update user settings (Check the options in the table bellow.)
-* **lsp-java-update-server** - Update server instalation.
+* `lsp-java-organize-imports` - Organize imports
+* `lsp-java-build-project` - Perform partial or full build for the projects
+* `lsp-java-update-project-configuration` - Update project configuration
+* `lsp-java-actionable-notifications` - Resolve actionable notifications
+* `lsp-java-update-user-settings` - Update user settings (Check the options in the table bellow.)
+* `lsp-java-update-server` - Update server instalation.
 #### Refactoring
 LSP Java provides rich set of refactorings via [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) code actions and
 some of them are bound to Emacs commands:
-* **lsp-java-extract-to-constant** - Extract constant refactoring
-* **lsp-java-add-unimplemented-methods** - Extract constant refactoring
-* **lsp-java-create-parameter** - Create parameter refactoring
-* **lsp-java-create-field** - Create field refactoring
-* **lsp-java-create-local** - Create local refactoring
-* **lsp-java-extract-method** - Extract method refactoring
-* **lsp-java-add-import** - Add missing import
+* `lsp-java-extract-to-constant` - Extract constant refactoring
+* `lsp-java-add-unimplemented-methods` - Extract constant refactoring
+* `lsp-java-create-parameter` - Create parameter refactoring
+* `lsp-java-create-field` - Create field refactoring
+* `lsp-java-create-local` - Create local refactoring
+* `lsp-java-extract-method` - Extract method refactoring
+* `lsp-java-add-import` - Add missing import
 ## Supported settings
-* **lsp-java-server-install-dir** - Install directory for eclipsejdtls-server
-* **lsp-java-java-path** - Path of the java executable
-* **lsp-java-workspace-dir** - LSP java workspace directory
-* **lsp-java-workspace-cache-dir** - LSP java workspace cache directory
-* **lsp-java-vmargs** - Specifies extra VM arguments used to launch the Java Language Server
-* **lsp-java-incomplete-classpath** - Specifies the severity of the message when the classpath is incomplete for a Java file
-* **lsp-java-update-build-configuration** - Specifies how modifications on build files update the Java classpath/configuration
-* **lsp-java-import-exclusions** - Configure glob patterns for excluding folders
-* **lsp-java-favorite-static-members** - Defines a list of static members or types with static members
-* **lsp-java-import-order** - Defines the sorting order of import statements
-* **lsp-java-trace-server** - Traces the communication between Emacs and the Java language server
-* **lsp-java-enable-file-watch** - Defines whether the client will monitor the files for changes
-* **lsp-java-format-enabled** - Specifies whether or not formatting is enabled on the language server
-* **lsp-java-format-settings-url** - Specifies the file path to the formatter xml url
-* **lsp-java-format-settings-profile** - Specifies the formatter profile name
-* **lsp-java-format-comments-enabled** - Preference key used to include the comments during the formatting
-* **lsp-java-save-action-organize-imports** - Organize imports on save
-* **lsp-java-bundles** - List of bundles that will be loaded in the JDT server
-* **lsp-java-import-gradle-enabled** - Enable/disable the Gradle importer
-* **lsp-java-import-maven-enabled** - Enable/disable the Maven importer
-* **lsp-java-auto-build** - Enable/disable the 'auto build'
-* **lsp-java-progress-report** - [Experimental] Enable/disable progress reports from background processes on the server
-* **lsp-java-completion-guess-arguments** - When set to true, method arguments are guessed when a method is selected from as list of code assist proposals.
+* `lsp-java-server-install-dir` - Install directory for eclipsejdtls-server
+* `lsp-java-java-path` - Path of the java executable
+* `lsp-java-workspace-dir` - LSP java workspace directory
+* `lsp-java-workspace-cache-dir` - LSP java workspace cache directory
+* `lsp-java-vmargs` - Specifies extra VM arguments used to launch the Java Language Server
+* `lsp-java-incomplete-classpath` - Specifies the severity of the message when the classpath is incomplete for a Java file
+* `lsp-java-update-build-configuration` - Specifies how modifications on build files update the Java classpath/configuration
+* `lsp-java-import-exclusions` - Configure glob patterns for excluding folders
+* `lsp-java-favorite-static-members` - Defines a list of static members or types with static members
+* `lsp-java-import-order` - Defines the sorting order of import statements
+* `lsp-java-trace-server` - Traces the communication between Emacs and the Java language server
+* `lsp-java-enable-file-watch` - Defines whether the client will monitor the files for changes
+* `lsp-java-format-enabled` - Specifies whether or not formatting is enabled on the language server
+* `lsp-java-format-settings-url` - Specifies the file path to the formatter xml url
+* `lsp-java-format-settings-profile` - Specifies the formatter profile name
+* `lsp-java-format-comments-enabled` - Preference key used to include the comments during the formatting
+* `lsp-java-save-action-organize-imports` - Organize imports on save
+* `lsp-java-bundles` - List of bundles that will be loaded in the JDT server
+* `lsp-java-import-gradle-enabled` - Enable/disable the Gradle importer
+* `lsp-java-import-maven-enabled` - Enable/disable the Maven importer
+* `lsp-java-auto-build` - Enable/disable the 'auto build'
+* `lsp-java-progress-report` - [Experimental] Enable/disable progress reports from background processes on the server
+* `lsp-java-completion-guess-arguments` - When set to true, method arguments are guessed when a method is selected from as list of code assist proposals.
 ## Additional packages
 * [lsp-ui](https://github.com/emacs-lsp/lsp-ui) : Flycheck, documentation and code actions support.
 * [company-lsp](https://github.com/tigersoldier/company-lsp) : LSP company backend.

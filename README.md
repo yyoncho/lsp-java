@@ -1,9 +1,7 @@
 [![MELPA](https://melpa.org/packages/lsp-java-badge.svg)](https://melpa.org/#/lsp-java)
 [![Build Status](https://travis-ci.com/emacs-lsp/lsp-java.svg?branch=master)](https://travis-ci.com/emacs-lsp/lsp-java)
 [![Join the chat at https://gitter.im/emacs-lsp/lsp-mode](https://badges.gitter.im/emacs-lsp/lsp-mode.svg)](https://gitter.im/emacs-lsp/lsp-mode?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-Java support for lsp-mode using the [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls).
-## Screenshot
-![demo](images/demo.png)
+Emacs Java IDE using [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls).
 ## Features
 LSP java mode supports the following JDT Features:
 * As you type reporting of parsing and compilation errors (via [flycheck](https://github.com/flycheck/flycheck)/[lsp-ui](https://github.com/emacs-lsp/lsp-ui))
@@ -20,7 +18,8 @@ LSP java mode supports the following JDT Features:
 * Visual debugger - [dap-mode](https://github.com/yyoncho/dap-mode/)
 * Test runner - [dap-mode](https://github.com/yyoncho/dap-mode/)
 * Project explorer - [treemacs](https://github.com/Alexander-Miller/treemacs)
-
+## Screenshot
+![demo](images/demo.png)
 ## Installation
 ### Spacemacs
 [lsp-java](https://github.com/emacs-lsp/lsp-java) is included in spacemacs (for now only on the dev branch). If you are using the development version of

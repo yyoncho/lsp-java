@@ -94,8 +94,9 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
 ```
 ### Treemacs
 [lsp-java](https://github.com/emacs-lsp/lsp-java) provides integration with [treemacs](https://github.com/Alexander-Miller/treemacs) which provides option to navigate through package dependecies, namespaces, classes and resources.
-* **lsp-java-treemacs-register** activates [lsp-java](https://github.com/emacs-lsp/lsp-java)/[treemacs](https://github.com/Alexander-Miller/treemacs) integration.
-* **lsp-java-treemacs-unregister** deactivates
+* `lsp-java-treemacs-register` activates [lsp-java](https://github.com/emacs-lsp/lsp-java)/[treemacs](https://github.com/Alexander-Miller/treemacs) integration.
+* `lsp-java-treemacs-unregister` deactivates [lsp-java](https://github.com/emacs-lsp/lsp-java)/[treemacs](https://github.com/Alexander-Miller/treemacs) integration.
+* `lsp-java-update-project-uris`
 ## Supported commands
 ### LSP Mode commands
 * `lsp-execute-code-action` - Execute code action.

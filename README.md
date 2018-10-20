@@ -1,8 +1,9 @@
 [![MELPA](https://melpa.org/packages/lsp-java-badge.svg)](https://melpa.org/#/lsp-java)
 [![Build Status](https://travis-ci.com/emacs-lsp/lsp-java.svg?branch=master)](https://travis-ci.com/emacs-lsp/lsp-java)
-
+[![Join the chat at https://gitter.im/emacs-lsp/lsp-mode](https://badges.gitter.im/emacs-lsp/lsp-mode.svg)](https://gitter.im/emacs-lsp/lsp-mode?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 Java support for lsp-mode using the [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls).
-
+## Screenshot
+![demo](images/demo.png)
 ## Features
 LSP java mode supports the following JDT Features:
 * As you type reporting of parsing and compilation errors (via [flycheck](https://github.com/flycheck/flycheck)/[lsp-ui](https://github.com/emacs-lsp/lsp-ui))
@@ -87,12 +88,10 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
 
 (use-package lsp-java
   :ensure t
-  :requires (lsp-ui-flycheck lsp-ui-sideline)
   :config
   (add-hook 'java-mode-hook  'lsp-java-enable)
   (add-hook 'java-mode-hook  'flycheck-mode)
   (add-hook 'java-mode-hook  'company-mode)
-  (add-hook 'java-mode-hook  (lambda () (lsp-ui-flycheck-enable t)))
   (add-hook 'java-mode-hook  'lsp-ui-mode))
 ```
 ## Supported commands
@@ -111,7 +110,6 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
   | lsp-workspace-folders-remove | Remove workspace folder                                      |
   | lsp-workspace-folders-switch | Switch workspace folder                                      |
 ### LSP Java commands
-
   | Command name                          | Description                                                   |
   |---------------------------------------|---------------------------------------------------------------|
   | lsp-java-organize-imports             | Organize imports                                              |
@@ -121,10 +119,8 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
   | lsp-java-update-user-settings         | Update user settings (Check the options in the table bellow.) |
   | lsp-java-update-server                | Update server instalation.                                    |
 #### Refactoring
-
 LSP Java provides rich set of refactorings via [Eclipse JDT Language Server](https://projects.eclipse.org/projects/eclipse.jdt.ls) code actions and
 some of them are bound to Emacs commands:
-
   | Command name                       | Description                  |
   |------------------------------------|------------------------------|
   | lsp-java-extract-to-constant       | Extract constant refactoring |
@@ -160,20 +156,17 @@ some of them are bound to Emacs commands:
   | lsp-java-auto-build                   | Enable/disable the 'auto build'                                                                                 |
   | lsp-java-progress-report              | [Experimental] Enable/disable progress reports from background processes on the server                          |
   | lsp-java-completion-guess-arguments   | When set to true, method arguments are guessed when a method is selected from as list of code assist proposals. |
-## Screenshot
-![demo](images/demo.png)
 ## Additional packages
 * [lsp-ui](https://github.com/emacs-lsp/lsp-ui) : Flycheck, documentation and code actions support.
 * [company-lsp](https://github.com/tigersoldier/company-lsp) : LSP company backend.
+* [treemacs](https://github.com/Alexander-Miller/treemacs) : Project viewer.
 ## FAQ
 * LSP Java is showing to many debug messages, how to stop that?
-
 Add the following configuration.
 ```emacs-lisp
 (setq lsp-inhibit-message t)
 ```
 * [lsp-ui](https://github.com/emacs-lsp/lsp-ui) does not display all of the actions on the current point(e. g "Extract constant")?
-
 LSP UI by default sends current line bounds for action region which breaks forces JDT server to return only "Extract method action."
 ```emacs-lisp
 (setq lsp-ui-sideline-update-mode 'point)

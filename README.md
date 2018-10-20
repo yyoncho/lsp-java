@@ -92,11 +92,6 @@ Minimal configuration with [company-lsp](https://github.com/tigersoldier/company
   (add-hook 'java-mode-hook  'company-mode)
   (add-hook 'java-mode-hook  'lsp-ui-mode))
 ```
-### Treemacs
-[lsp-java](https://github.com/emacs-lsp/lsp-java) provides integration with [treemacs](https://github.com/Alexander-Miller/treemacs) which provides option to navigate through package dependecies, namespaces, classes and resources.
-* `lsp-java-treemacs-register` activates [lsp-java](https://github.com/emacs-lsp/lsp-java)/[treemacs](https://github.com/Alexander-Miller/treemacs) integration.
-* `lsp-java-treemacs-unregister` deactivates [lsp-java](https://github.com/emacs-lsp/lsp-java)/[treemacs](https://github.com/Alexander-Miller/treemacs) integration.
-* `lsp-java-update-project-uris`
 ## Supported commands
 ### LSP Mode commands
 * `lsp-execute-code-action` - Execute code action.
@@ -127,6 +122,11 @@ some of them are bound to Emacs commands:
 * `lsp-java-create-local` - Create local refactoring
 * `lsp-java-extract-method` - Extract method refactoring
 * `lsp-java-add-import` - Add missing import
+#### Treemacs
+[lsp-java](https://github.com/emacs-lsp/lsp-java) provides integration with [treemacs](https://github.com/Alexander-Miller/treemacs) which provides option to navigate through package dependecies, namespaces, classes and resources.
+* `lsp-java-treemacs-register` activates [lsp-java](https://github.com/emacs-lsp/lsp-java)/[treemacs](https://github.com/Alexander-Miller/treemacs) integration.
+* `lsp-java-treemacs-unregister` deactivates [lsp-java](https://github.com/emacs-lsp/lsp-java)/[treemacs](https://github.com/Alexander-Miller/treemacs) integration.
+* `lsp-java-update-project-uris`
 ## Supported settings
 * `lsp-java-server-install-dir` - Install directory for eclipsejdtls-server
 * `lsp-java-java-path` - Path of the java executable

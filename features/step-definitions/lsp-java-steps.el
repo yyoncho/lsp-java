@@ -78,7 +78,9 @@
 
 (And "^I add project \"\\([^\"]+\\)\" folder \"\\([^\"]+\\)\" to the list of workspace folders$"
   (lambda (project dir-name)
-    (add-to-list 'lsp-java--workspace-folders (f-join lsp-java-test-root dir-name project))))
+    (mkdir lsp-java-workspace-dir t)
+    (lsp--persist (f-join lsp-java-workspace-dir ".folders")
+                  (list (f-join lsp-java-test-root dir-name project)))))
 
 (And "^I start lsp-java$"
   (lambda ()
@@ -118,6 +120,15 @@
     (condition-case err
         (funcall (intern command))
       (error (cl-assert (string= message (error-message-string err)) t (error-message-string err))))))
+
+(When "^I call \"\\([^\"]+\\)\" and see:$"
+  (lambda (command text callback)
+    (lsp-java-steps-async-wait
+     (lambda ()
+       (save-window-excursion
+         (funcall (intern command))
+         (s-contains? text (buffer-string) t)))
+     callback)))
 
 (provide 'lsp-java-steps)
 ;;; lsp-java-steps.el ends here

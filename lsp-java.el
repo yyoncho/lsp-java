@@ -1,7 +1,7 @@
 ;;; lsp-java.el --- Java support for lsp-mode
 
 ;; Version: 1.0
-;; Package-Requires: ((emacs "25.1") (lsp-mode "3.0") (markdown-mode "2.3") (dash "2.14.1") (f "0.20.0"))
+;; Package-Requires: ((emacs "25.1") (lsp-mode "3.0") (markdown-mode "2.3") (dash "2.14.1") (f "0.20.0") (ht "2.0") (dash-functional "1.2.0"))
 ;; Keywords: java
 ;; URL: https://github.com/emacs-lsp/lsp-java
 
@@ -26,6 +26,7 @@
 (require 'markdown-mode)
 (require 'lsp-methods)
 (require 'dash)
+(require 'ht)
 (require 'f)
 (require 'tree-widget)
 
@@ -75,6 +76,11 @@ The slash is expected at the end."
   :type 'string
   :group 'lsp-java)
 
+(defcustom lsp-java-pop-buffer-function 'lsp-java-show-buffer
+  "The function which will be used for showing the helper windows."
+  :type 'function
+  :group 'lsp-java)
+
 (defcustom lsp-java-vmargs '("-noverify" "-Xmx1G" "-XX:+UseG1GC" "-XX:+UseStringDeduplication")
   "Specifies extra VM arguments used to launch the Java Language Server.
 
@@ -82,6 +88,12 @@ Eg. use `-noverify -Xmx1G -XX:+UseG1GC
 -XX:+UseStringDeduplication` to bypass class
 verification,increase the heap size to 1GB and enable String
 deduplication with the G1 Garbage collector"
+  :group 'lsp-java
+  :risky t
+  :type '(repeat string))
+
+(defcustom lsp-java-9-args '("--add-modules=ALL-SYSTEM" "--add-opens java.base/java.util=ALL-UNNAMED" "--add-opens java.base/java.lang=ALL-UNNAMED")
+  "Specifies arguments specific to java 9 and later."
   :group 'lsp-java
   :risky t
   :type '(repeat string))
@@ -258,7 +270,7 @@ A package or type name prefix (e.g. 'org.eclipse') is a valid entry. An import i
 (defvar lsp-java-buffer-configurations
   `(("*classpath*" . ((side . right) (slot . 10) (window-width . 0.20)))))
 
-(defun lsp-java--show-buffer (buf)
+(defun lsp-java-show-buffer (buf)
   "Show BUF according to defined rules."
   (let ((win (display-buffer-in-side-window buf
                                             (or (-> buf
@@ -292,8 +304,7 @@ The entry point of the language server is in `lsp-java-server-install-dir'/plugi
                   "config_win")
                  ((string-equal system-type "darwin") ; Mac OS X
                   "config_mac")
-                 ((string-equal system-type "gnu/linux") ; linux
-                  "config_linux"))))
+                 (t "config_linux"))))
     (let ((inhibit-message t))
       (message (format "using config for %s" config)))
     (expand-file-name config lsp-java-server-install-dir)))
@@ -532,11 +543,16 @@ PARAMS progress report notification data."
   "Handler for folder's change."
   (lsp-java-update-project-uris lsp--cur-workspace))
 
+(defun lsp-java--workspace-notify (&rest _args)
+  "Workspace notify handler."
+  (lsp-java-update-project-uris lsp--cur-workspace))
+
 (defun lsp-java--client-initialized (client)
   "Callback for CLIENT initialized."
   (lsp-client-on-notification client "language/status" 'lsp-java--language-status-callback)
   (lsp-client-on-notification client "language/actionableNotification" 'lsp-java--actionable-notification-callback)
   (lsp-client-on-notification client "language/progressReport" 'lsp-java--progress-report)
+  (lsp-client-on-notification client "workspace/notify" 'lsp-java--workspace-notify)
   (lsp-client-on-action client "java.apply.workspaceEdit" 'lsp-java--apply-workspace-edit)
   (lsp-client-register-uri-handler client "jdt" 'lsp-java--resolve-uri)
   (lsp-client-register-uri-handler client "chelib" 'lsp-java--resolve-uri)
@@ -703,7 +719,6 @@ server."
 
   (lsp-java-update-project-uris lsp--cur-workspace))
 
-
 (defun lsp-java-update-project-uris (&optional workspace)
   "Update WORKSPACE project uris."
   (interactive)
@@ -734,7 +749,7 @@ server."
       (lsp-java-update-project-uris workspace)
       (puthash "last-workspace-folders" current-workspace-folders workspace-metadata))))
 
-(defun lsp-java--find-root (file-uri)
+(defun lsp-java--find-workspace (file-uri)
   "Return the workspace corresponding FILE-URI."
   (->> lsp--workspaces
        ht-values
@@ -767,9 +782,6 @@ server."
 
   ;; disable editing in case file coming from a jar has been opened.
   (when lsp-buffer-uri (read-only-mode 1)))
-
-
-
 
 (add-function :after (symbol-function 'lsp-java-enable) #'lsp-java--after-start)
 (add-function :before (symbol-function 'lsp-java-enable) #'lsp-java--before-start)
@@ -804,12 +816,8 @@ server."
     (define-key map (kbd "RET") 'lsp-java-classpath-open)
     map))
 
-(define-minor-mode lsp-java-classpath-mode
-  "Minor mode for browsing classpath."
-  :init-value nil
-  :keymap lsp-java-classpath-mode-map
-  :group lsp-java
-  (setq buffer-read-only t))
+(define-derived-mode lsp-java-classpath-mode special-mode "lsp-java-classpath"
+  "Minor mode for browsing classpath.")
 
 (define-widget 'lsp-java-widget-guide 'item
   "Vertical guide line."
@@ -916,13 +924,14 @@ PROJECT-URI uri of the item."
   "Show currently active sessions."
   (interactive)
   (let ((uri (lsp--path-to-uri (or buffer-file-name (f-canonical default-directory)))))
-    (--if-let (lsp-java--find-root uri)
+    (--if-let (or lsp--cur-workspace (lsp-java--find-workspace uri))
         (with-lsp-workspace it
           (if-let (project-uri (lsp-java--find-project-uri buffer-file-name))
               (let ((inhibit-read-only t)
                     (buf (get-buffer-create "*classpath*")))
                 (with-current-buffer buf
                   (erase-buffer)
+                  (lsp-java-classpath-mode)
                   (setq-local lsp--cur-workspace it)
 
                   (when lsp-java-themes-directory
@@ -940,8 +949,9 @@ PROJECT-URI uri of the item."
                      ,@lsp-java-icons-default-root-folder
                      ,@(--map (lsp-java--classpath-render-classpath it project-uri)
                               (lsp-send-execute-command "che.jdt.ls.extension.classpathTree" project-uri))))
-                  (lsp-java-classpath-mode t))
-                (lsp-java--show-buffer buf))
+                  (run-hooks 'lsp-java-classpath-mode-hook))
+                (funcall lsp-java-pop-buffer-function buf)
+                (goto-char (point-min)))
             (user-error "Failed to calculate project for buffer %s" (buffer-name))))
       (user-error "Unable to find workspace for buffer %s" (buffer-name)))))
 

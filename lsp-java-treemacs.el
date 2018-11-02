@@ -25,15 +25,20 @@
 
 ;;; Code:
 
-(require 'ht)
-(require 'lsp-mode)
-(require 'treemacs-extensions)
 (require 'dash)
+(require 'lsp-mode)
+(require 'lsp-java)
 (require 'dash-functional)
+(require 'treemacs-extensions)
 
 (defface lsp-java-treemacs-directory-face
   '((t :inherit  treemacs-directory-face))
   "Face used by treemacs for lsp-java directories and packages."
+  :group 'lsp-java-treemacs)
+
+(defface lsp-java-treemacs-extension-root-face
+  '((t :inherit treemacs-directory-face ))
+  "Face used for the extension root."
   :group 'lsp-java-treemacs)
 
 (defface lsp-java-treemacs-file-face
@@ -45,14 +50,14 @@
 (defun lsp-java-treemacs--get-libraries (project-uri)
   "Get the list of buffers, grouped by their major mode.
 PROJECT-URI is the project id of the active project."
-  (when-lsp-workspace (lsp-java--find-root project-uri)
+  (when-lsp-workspace (lsp-java--find-workspace project-uri)
     (lsp-send-execute-command "che.jdt.ls.extension.externalLibraries"
                               (list :projectUri project-uri))))
 
 (defun lsp-java-treemacs--library-children (project-uri node-id)
   "Get the list of library children.
 PROJECT-URI and NODE-ID are the details for the current node."
-  (when-lsp-workspace (lsp-java--find-root project-uri)
+  (when-lsp-workspace (lsp-java--find-workspace project-uri)
     (lsp-send-execute-command "che.jdt.ls.extension.libraryChildren"
                               (list :projectUri project-uri
                                     :nodeId node-id))))
@@ -60,7 +65,7 @@ PROJECT-URI and NODE-ID are the details for the current node."
 (defun lsp-java-treemacs--external-library-children (project-uri node-id path)
   "Get the list of external library children.
 PROJECT-URI, NODE-ID and PATH are the details for the current node."
-  (when-lsp-workspace (lsp-java--find-root project-uri)
+  (when-lsp-workspace (lsp-java--find-workspace project-uri)
     (lsp-send-execute-command "che.jdt.ls.extension.externalLibrariesChildren"
                               (list :projectUri project-uri
                                     :nodeId node-id
@@ -68,7 +73,7 @@ PROJECT-URI, NODE-ID and PATH are the details for the current node."
 
 (defun lsp-java-treemacs--open-file (_arg)
   "Open resource file."
-  (when-lsp-workspace (lsp-java--find-root (treemacs--prop-at-point :project-uri))
+  (when-lsp-workspace (lsp-java--find-workspace (treemacs--prop-at-point :project-uri))
     (->> (treemacs--prop-at-point :uri)
          lsp--uri-to-path
          find-file)))
@@ -76,28 +81,46 @@ PROJECT-URI, NODE-ID and PATH are the details for the current node."
 (treemacs-define-leaf-node lsp-file treemacs-icon-java
                            :ret-action 'lsp-java-treemacs--open-file)
 
-(defun lsp-java-treemacs--icon-path (rel-path)
-  "Get fullpath to `lsp-java-treemacs' icon.
-REL-PATH rel path to the icon."
-  (f-join (f-dirname (or load-file-name buffer-file-name)) rel-path))
+(defmacro lsp-java-treemacs--setup-icon (var file-name &rest extensions)
+  "Define VAR with its display property being the image created from FILE-NAME.
+Insert VAR into `treemacs-icon-hash' for each of the given file EXTENSIONS."
+  (unless (treemacs--is-image-creation-impossible?)
+    `(progn
+       (defvar ,var
+         (let* ((image-unselected (treemacs--create-image (f-join (f-dirname (or load-file-name buffer-file-name)) ,file-name)))
+                (image-selected   (treemacs--create-image (f-join (f-dirname (or load-file-name buffer-file-name)) ,file-name))))
+           (treemacs--set-img-property image-selected   :background treemacs--selected-icon-background)
+           (treemacs--set-img-property image-unselected :background treemacs--not-selected-icon-background)
+           (concat (propertize " "
+                               'display image-unselected
+                               'img-selected image-selected
+                               'img-unselected image-unselected)
+                   " ")))
+       (push ,var treemacs--created-icons)
+       (--each (quote ,extensions) (ht-set! treemacs-icons-hash it ,var))
+       ,var)))
 
-(treemacs--setup-icon lsp-java-treemacs-jar
-                      (lsp-java-treemacs--icon-path "icons/vscode/file_type_jar.png"))
-(treemacs--setup-icon treemacs-lsp-java-package
-                      (lsp-java-treemacs--icon-path "icons/vscode/folder_type_package.png"))
-(treemacs--setup-icon lsp-java-treemacs-package-opened
-                      (lsp-java-treemacs--icon-path "icons/vscode/folder_type_package_opened.png"))
-(treemacs--setup-icon treemacs-lsp-java-jar-folder
-                      (lsp-java-treemacs--icon-path "icons/vscode/folder_type_component.png"))
-(treemacs--setup-icon treemacs-lsp-java-jar-folder-opened
-                      (lsp-java-treemacs--icon-path "icons/vscode/folder_type_component_opened.png"))
-(treemacs--setup-icon treemacs-lsp-java-library-folder
-                      (lsp-java-treemacs--icon-path "icons/vscode/folder_type_library.png"))
-(treemacs--setup-icon treemacs-lsp-java-library-folder-opened
-                      (lsp-java-treemacs--icon-path "icons/vscode/folder_type_library_opened.png"))
-(treemacs--setup-icon treemacs-lsp-java-class
-                      (lsp-java-treemacs--icon-path "icons/vscode/file_type_class.png")
-                      "class")
+(if (treemacs--is-image-creation-impossible?)
+    (progn
+      (lsp-java-treemacs--setup-icon lsp-java-treemacs-jar "icons/vscode/file_type_jar.png")
+      (lsp-java-treemacs--setup-icon lsp-java-treemacs-jar-opened "icons/vscode/file_type_jar.png")
+      (lsp-java-treemacs--setup-icon lsp-java-treemacs-package "icons/vscode/folder_type_package.png")
+      (lsp-java-treemacs--setup-icon lsp-java-treemacs-package-opened "icons/vscode/folder_type_package_opened.png")
+      (lsp-java-treemacs--setup-icon lsp-java-treemacs-jar-folder "icons/vscode/folder_type_component.png")
+      (lsp-java-treemacs--setup-icon lsp-java-treemacs-jar-folder-opened "icons/vscode/folder_type_component_opened.png")
+      (lsp-java-treemacs--setup-icon lsp-java-treemacs-library-folder "icons/vscode/folder_type_library.png")
+      (lsp-java-treemacs--setup-icon lsp-java-treemacs-library-folder-opened "icons/vscode/folder_type_library_opened.png")
+      (lsp-java-treemacs--setup-icon lsp-java-treemacs-class "icons/vscode/file_type_class.png" "class"))
+  (treemacs--set-icon-save-default
+   lsp-java-treemacs-jar treemacs-icon-closed-text
+   lsp-java-treemacs-jar-opened treemacs-icon-open-text
+   lsp-java-treemacs-package treemacs-icon-closed-text
+   lsp-java-treemacs-package-opened treemacs-icon-open-text
+   lsp-java-treemacs-jar-folder treemacs-icon-closed-text
+   lsp-java-treemacs-jar-folder-opened treemacs-icon-open-text
+   lsp-java-treemacs-library-folder treemacs-icon-closed-text
+   lsp-java-treemacs-library-folder-opened treemacs-icon-open-text
+   lsp-java-treemacs-class treemacs-icon-tag-leaf-text))
 
 (defmacro treemacs--lsp-node-or-folder ()
   "Extract common code from nodes."
@@ -131,7 +154,7 @@ REL-PATH rel path to the icon."
 
 (treemacs-define-expandable-node package
   :icon-open lsp-java-treemacs-package-opened
-  :icon-closed treemacs-lsp-java-package
+  :icon-closed lsp-java-treemacs-package
   :query-function (lsp-java-treemacs--external-library-children
                    (button-get btn :project-uri)
                    (button-get btn :node-id)
@@ -139,8 +162,8 @@ REL-PATH rel path to the icon."
   :render-action (treemacs--lsp-node-or-folder))
 
 (treemacs-define-expandable-node folder
-  :icon-open treemacs-lsp-java-jar-folder-opened
-  :icon-closed treemacs-lsp-java-jar-folder
+  :icon-open lsp-java-treemacs-jar-folder-opened
+  :icon-closed lsp-java-treemacs-jar-folder
   :query-function (lsp-java-treemacs--external-library-children
                    (button-get btn :project-uri)
                    (button-get btn :node-id)
@@ -148,15 +171,15 @@ REL-PATH rel path to the icon."
   :render-action (treemacs--lsp-node-or-folder))
 
 (treemacs-define-expandable-node jar-file
-  :icon-open lsp-java-treemacs-jar
+  :icon-open lsp-java-treemacs-jar-opened
   :icon-closed lsp-java-treemacs-jar
   :query-function (lsp-java-treemacs--library-children (button-get btn :project-uri)
                                                        (button-get btn :key))
   :render-action (treemacs--lsp-node-or-folder))
 
 (treemacs-define-expandable-node external-library
-  :icon-open treemacs-lsp-java-library-folder-opened
-  :icon-closed treemacs-lsp-java-library-folder
+  :icon-open lsp-java-treemacs-library-folder-opened
+  :icon-closed lsp-java-treemacs-library-folder
   :query-function (-> btn
                       (button-get :parent)
                       (button-get :path)
@@ -165,7 +188,7 @@ REL-PATH rel path to the icon."
                       lsp-java-treemacs--get-libraries)
   :root-label "External Libraries"
   :root-marker t
-  :root-face font-lock-type-face
+  :root-face 'lsp-java-treemacs-extension-root-face
   :root-key-form (lsp--path-to-uri (button-get parent :path))
   :render-action (-let ((project-uri (-> btn
                                          (button-get :parent)
@@ -179,7 +202,7 @@ REL-PATH rel path to the icon."
                     :face 'lsp-java-treemacs-directory-face
                     :key-form id
                     :more-properties (:node-id id :project-uri project-uri
-                                               :workspace (lsp-java--find-root project-uri)))))
+                                               :workspace (lsp-java--find-workspace project-uri)))))
 
 (defun lsp-java-treemacs--folders-change (added removed)
   "Handler for `lsp-workspace-folders-change' hook.
@@ -193,14 +216,12 @@ ADDED and REMOVED are pointing which are the changed folders."
               treemacs-do-remove-project-from-workspace)))
 
 (defun lsp-java-treemacs--is-root (dir-or-project)
-
-  "Returns whether DIR-OR-PROJECT is root of a project."
-
+  "Return whether DIR-OR-PROJECT is root of a project."
   (let ((dir (if (stringp dir-or-project)
                  dir-or-project
                (treemacs-project->path dir-or-project))))
     (-some-> dir
-             lsp-java--find-root
+             lsp-java--find-workspace
              lsp-java--get-project-uris
              (-contains? (lsp--path-to-uri dir)))))
 
@@ -216,9 +237,14 @@ ADDED and REMOVED are pointing which are the changed folders."
    :position 'project-start
    :predicate 'lsp-java-treemacs--is-root)
 
+  (require 'treemacs)
+  (unless (eq 'visible (treemacs-current-visibility))
+    (treemacs))
 
-  (maphash (lambda (root-path workspace)
-             (treemacs-do-add-project-to-workspace root-path (f-filename root-path)))
+  (maphash (lambda (root-path _workspace)
+             (unless (or (s-equals? (f-canonical root-path) (f-canonical lsp-java-workspace-dir))
+                         (s-equals? (f-canonical root-path) (f-canonical lsp-java-workspace-cache-dir)))
+               (treemacs-do-add-project-to-workspace root-path (f-filename root-path))))
            lsp--workspaces)
   (add-hook 'lsp-workspace-folders-change 'lsp-java-treemacs--folders-change))
 
@@ -226,8 +252,10 @@ ADDED and REMOVED are pointing which are the changed folders."
   "Unregister extension."
   (interactive)
   (remove-hook 'lsp-workspace-folders-change 'lsp-java-treemacs--folders-change)
-  (treemacs-remove-extension 'treemacs-EXTERNAL-LIBRARY-extension
-                             'project-start))
+  (treemacs-remove-project-extension 'treemacs-EXTERNAL-LIBRARY-extension
+                                     'project-start)
+  (treemacs-remove-directory-extension 'treemacs-EXTERNAL-LIBRARY-extension
+                                       'directory-start))
 
 (provide 'lsp-java-treemacs )
 ;;; lsp-java-treemacs.el ends here

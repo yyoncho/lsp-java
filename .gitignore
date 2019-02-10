@@ -1,2 +1,4 @@
 .cask
 tmp/
+/install/target/vscode-extension-extracted/[Content_Types].xml
+/install/.mvn/wrapper/maven-wrapper.jar

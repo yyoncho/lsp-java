@@ -48,6 +48,14 @@ The slash is expected at the end."
   :group 'lsp-java
   :type 'string)
 
+(defvar lsp-java-progress-string ""
+  "Path of the java executable.")
+
+(defface lsp-java-progress-face
+  '((t (:inherit 'success)))
+  "face for activity message"
+  :group 'lsp-java)
+
 (defcustom lsp-java-workspace-dir (expand-file-name (locate-user-emacs-file "workspace/"))
   "LSP java workspace directory."
   :group 'lsp-java
@@ -432,8 +440,13 @@ PARAMS the parameters for actionable notifications."
   "Progress report handling.
 
 PARAMS progress report notification data."
-  (let ((inhibit-message lsp-java-inhibit-message))
-    (lsp-message "%s%s" (gethash "status" params) (if (gethash "complete" params) " (done)" ""))))
+  (-let [(&hash "status" "complete") params]
+    (setq lsp-java-progress-string (propertize (s-replace "%" "%%" status) 'face 'lsp-java-progress-face))
+    (when complete
+      (run-with-idle-timer 0.8 nil (lambda ()
+                                     (setq lsp-java-progress-string nil))))))
+
+(put 'lsp-java-progress-string 'risky-local-variable t)
 
 (defun lsp-java--render-string (str)
   "Render STR with `java-mode' syntax highlight."
@@ -854,6 +867,8 @@ PROJECT-URI uri of the item."
       (xref--show-xrefs (lsp--locations-to-xref-items refs) nil)
     (user-error "No implementations")))
 
+(add-to-list 'global-mode-string (list '(t lsp-java-progress-string)))
+
 (lsp-register-client
  (make-lsp--client
   :new-connection (lsp-stdio-connection 'lsp-java--ls-command)
@@ -897,10 +912,10 @@ PROJECT-URI uri of the item."
      :headers '(("Accept" . "application/vnd.initializr.v2.1+json"))
      :success (cl-function
                (lambda (&key data &allow-other-keys)
-                 (flet ((ask (message key) (alist-get 'id
-                                                      (lsp--completing-read message
-                                                                            (alist-get 'values (alist-get key data))
-                                                                            (-partial 'alist-get 'name)))))
+                 (cl-flet ((ask (message key) (alist-get 'id
+                                                         (lsp--completing-read message
+                                                                               (alist-get 'values (alist-get key data))
+                                                                               (-partial 'alist-get 'name)))))
                    (condition-case _err
                        (-let* ((group-id (read-string "Enter group name: " "com.example"))
                                (artifact-id (read-string "Enter artifactId: " "demo"))

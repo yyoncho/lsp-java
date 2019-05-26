@@ -468,13 +468,6 @@ FULL specify whether full or incremental build will be performed."
       ,lsp-java-workspace-dir
       ,@java-9-args)))
 
-(defun lsp-java--is-root (dir)
-  "Return whether DIR is root of a project."
-  (-some-> dir
-           lsp-java--find-workspace
-           lsp-java--get-project-uris
-           (-contains? (lsp--path-to-uri dir))))
-
 (defun lsp-java--get-root ()
   "Retrieves the root directory of the java project root if available.
 
@@ -1121,6 +1114,26 @@ PROJECT-URI uri of the item."
                     (list :accessors(apply #'vector to-generate)
                           :context context))))))
 
+(defun lsp-java--generate-constructors-prompt (action)
+  (setq my/action action)
+  (lsp-java-with-jdtls
+    (let* ((context (seq-first (gethash "arguments" action)))
+           (result (lsp-request "java/resolveUnimplementedAccessors" context))
+           (fields-data (-map (-lambda ((field &as &hash "fieldName" name
+                                               "generateGetter" getter?
+                                               "generateSetter" setter?
+                                               "isStatic" static?))
+                                 (cons (format "%s" name) field))
+                              result))
+           (to-generate (lsp-java--completing-read-multiple
+                                 "Select getters/setters to generate"
+                                 fields-data
+                                 (-map #'cl-rest fields-data))))
+      (lsp-java--apply-document-changes
+       (lsp-request "java/generateAccessors"
+                    (list :accessors(apply #'vector to-generate)
+                          :context context))))))
+
 (lsp-register-client
  (make-lsp--client
   :new-connection (lsp-stdio-connection 'lsp-java--ls-command)
@@ -1137,7 +1150,10 @@ PROJECT-URI uri of the item."
                        ("java.action.hashCodeEqualsPrompt" #'lsp-java--action-generate-equals-and-hash-code)
                        ("java.action.organizeImports" #'lsp-java--action-organize-imports)
                        ("java.action.overrideMethodsPrompt" #'lsp-java--override-methods-prompt)
-                       ("java.action.generateAccessorsPrompt" #'lsp-java--generate-accessors-prompt))
+                       ("java.action.generateAccessorsPrompt" #'lsp-java--generate-accessors-prompt)
+                       ("java.action.generateConstructorsPrompt" #'lsp-java--generate-constructors-prompt))
+
+
   :uri-handlers (ht ("jdt" #'lsp-java--resolve-uri)
                     ("chelib" #'lsp-java--resolve-uri))
   :initialization-options (lambda ()
@@ -1150,7 +1166,9 @@ PROJECT-URI uri of the item."
                                                                     :hashCodeEqualsPromptSupport t
                                                                     :advancedOrganizeImportsSupport t
                                                                     :generateToStringPromptSupport t
-                                                                    :advancedGenerateAccessorsSupport t)
+                                                                    :generateConstructorsPromptSupport: t
+                                                                    :advancedGenerateAccessorsSupport t
+                                                                    :generateDelegateMethodsPromptSupport t)
                                   :bundles (lsp-java--bundles)
                                   :workspaceFolders (->> (lsp-session)
                                                          lsp-session-server-id->folders
